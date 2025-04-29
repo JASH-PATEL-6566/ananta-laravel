@@ -34,5 +34,5 @@ yarn-error.log
 # /public/mix-manifest.json
 node_modules
 node_modules
-/storage/media-library/**/*
+# /storage/media-library/**/*
 _ide_helper.php
