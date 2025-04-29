@@ -193,7 +193,6 @@ public function moviesListByGenre($genre_id)
 
         // Retrieve cached data
         $data = Cache::get($cacheKey);
-// dd($data);
         if (!$data) {
             $movie = Entertainment::where('id', $movieId)
                 ->with([
@@ -316,7 +315,7 @@ public function moviesListByGenre($genre_id)
                 }
             }
         }
-// dd($data);
+
         return view('frontend::movieDetail', compact('data', 'continue_watch'));
     }
 

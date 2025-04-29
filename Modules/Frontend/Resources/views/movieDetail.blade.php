@@ -13,6 +13,7 @@
     @endif
 </div>
 
+
 <div id="detail-section">
     @include('frontend::components.section.data_detail',  ['data' => $data])
 </div>

@@ -1,366 +1,415 @@
-{{-- 
 <div class="detail-page-banner">
-        <div class="video-player">
-
-            @if($type=='Local')
-
-            <video id="videoPlayer" class="video-js vjs-default-skin" controls  width="560"
-            height="315"
-            autoplay="{{ auth()->check() ? 'true' : 'false' }}"
-            muted
-            data-setup="{}"
-              poster="{{$thumbnail_image}}"
-                data-setup='{"autoplay": {{ auth()->check() ? 'true' : 'false' }}, "muted": true}'>
-            <source src="{{ $data }}" type="video/mp4" id="videoSource">
-
-          </video>
-
-
-            @else
-
-            <!-- Video.js Player -->
-            <video
-                id="videoPlayer"
-                class="video-js vjs-default-skin"
-                controls
-                width="560"
-                height="315"
-                autoplay="{{ auth()->check() ? 'true' : 'false' }}"
-                muted
-                data-watch-time="{{$watched_time??0}}"
-                data-movie-access="{{$dataAccess??''}}"
-                data-encrypted="{{ $data }}"
-                 poster="{{$thumbnail_image}}"
-                data-setup='{"autoplay": {{ auth()->check() ? 'true' : 'false' }}, "muted": true}'>
-
-            </video>
-            @endif
-
-        </div>
-</div>
-
-
-
-
-
-<!-- Include the custom JS -->
-<script src="{{ asset('js/videoplayer.min.js') }}"></script>
-<script>
-    var isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
-    var loginUrl = "{{ route('login') }}";  // Update with your actual login route
-</script> --}}
-{{-- <style>
-  #quality-controls {
-    margin-top: 15px;
-    text-align: center;
-  }
-  select {
-    padding: 6px 10px;
-    font-size: 16px;
-  }
-</style> --}}
-<style>
-  body {
-    background-color: #111;
-    color: white;
-    font-family: Arial, sans-serif;
-    padding: 20px;
-  }
-  .video-container {
-    width: 90%;
-    max-width: 960px;
-    margin: auto;
-  }
-  .controls {
-    margin-top: 10px;
-    text-align: center;
-  }
-  select {
-    margin: 0 10px;
-    padding: 6px 10px;
-    font-size: 16px;
-    background: #222;
-    color: #fff;
-    border: 1px solid #444;
-    border-radius: 5px;
-  }
-  .vjs-big-play-button {
-    background-color: #d9ed38 !important;
-    color: black;
-  }
-  .video-js .vjs-control-bar {
-    background-color: rgba(0, 0, 0, 0.7);
-  }
-</style>
-<div class="detail-page-banner">
-        <div class="video-player">
-
-            @if($type=='Local')
-
-            <video id="videoPlayer" class="video-js vjs-default-skin" controls  width="560"
-            height="315"
-            autoplay="{{ auth()->check() ? 'true' : 'false' }}"
-            muted
-            data-setup="{}"
-              poster="{{$thumbnail_image}}"
-                data-setup='{"autoplay": {{ auth()->check() ? 'true' : 'false' }}, "muted": true}'>
-            <source src="{{ $data }}" type="video/mp4" id="videoSource">
-
-          </video>
-
-
-            @else
-
-            <!-- Video.js Player -->
-            {{-- <video
-    id="videoPlayer"
-    class="video-js vjs-default-skin"
-    controls
-    width="560"
-    height="315"
-    autoplay="{{ auth()->check() ? 'true' : 'false' }}"
-    muted
-    data-watch-time="{{$watched_time??0}}"
-    data-movie-access="{{$dataAccess??''}}"
-    data-encrypted="{{ $data }}"
-    poster="{{$thumbnail_image}}"
-    data-setup='{"autoplay": {{ auth()->check() ? 'true' : 'false' }}, "muted": true}'>
-</video>
-<div id="quality-controls">
-    <label for="quality">Quality:</label>
-    <select id="quality">
-        <option>Loading...</option>
-    </select>
-</div>
-
-<!-- Video.js JS -->
-<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
-<script>
-    const video = document.getElementById('videoPlayer');
-    const qualitySelector = document.getElementById('quality');
-
-    const basePath = 'https://ananta-video-s3.s3.ca-central-1.amazonaws.com/processed/inputfinal';
-
-    const qualityOptions = [
-        { label: '1080p', url: `${basePath}/1080p/1080p.m3u8` },
-        { label: '720p',  url: `${basePath}/720p/720p.m3u8` },
-        { label: '360p',  url: `${basePath}/360p/360p.m3u8` }
-    ];
-
-    // Populate the dropdown
-    qualityOptions.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = opt.url;
-        option.textContent = opt.label;
-        qualitySelector.appendChild(option);
-    });
-
-    let hls;
-    let currentTime = 0;
-
-    // Function to load the video stream
-    function loadVideo(url) {
-        if (hls) {
-            hls.destroy(); // clean up previous instance
-        }
-
-        if (Hls.isSupported()) {
-            hls = new Hls();
-            hls.loadSource(url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                video.play();
-            });
-            hls.on(Hls.Events.LEVEL_SWITCHED, function () {
-                // Maintain the current time when switching quality levels
-                video.currentTime = currentTime;  
-            });
-            hls.on(Hls.Events.ERROR, function (event, data) {
-                console.error('HLS error:', data);
-                if (data.fatal) {
-                    alert("An error occurred while loading the video.");
-                }
-            });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = url;
-            video.addEventListener('loadedmetadata', () => {
-                video.play();
-                video.currentTime = currentTime;  // Restore position
-            });
-        } else {
-            alert("HLS not supported in this browser.");
-        }
-
-        // Enable seeking functionality
-        video.addEventListener('seeking', function () {
-            currentTime = video.currentTime;  // Save the time when seeking
-        });
-
-        video.addEventListener('seeked', function () {
-            currentTime = video.currentTime;  // Update time after seek is complete
-        });
-    }
-
-    // Load the default video source
-    loadVideo(qualityOptions[0].url);
-
-    // Handle quality change
-    qualitySelector.addEventListener('change', function () {
-        const selectedUrl = this.value;
-        currentTime = video.currentTime;  // Save current playback time before switching
-        loadVideo(selectedUrl);
-    });
-
-    // Fullscreen fix: Ensuring video is not reset when switching to fullscreen
-    video.addEventListener('fullscreenchange', function () {
-        if (document.fullscreenElement) {
-            // When entering fullscreen, do nothing but prevent reload.
-            console.log('Fullscreen mode activated');
-        } else {
-            // When exiting fullscreen, we ensure that the video doesn't reload.
-            video.play();
-            video.currentTime = currentTime;
-        }
-    });
-
-</script> --}}
-<div class="video-container">
-  <video
-    id="my-video"
-    class="video-js vjs-default-skin vjs-big-play-centered"
-    controls
-    preload="auto"
-    width="960"
-    height="540"
-    data-setup='{}'
-  >
-    <source src="https://ananta-video-s3.s3.ca-central-1.amazonaws.com/processed/inputfinal/master.m3u8" type="application/x-mpegURL">
-  </video>
-
-  <div class="controls">
-    <label for="qualitySelect">🔽 Quality:</label>
-    <select id="qualitySelect">
-      <option>Loading...</option>
-    </select>
-
-    <label for="audioSelect">🔈 Audio:</label>
-    <select id="audioSelect">
-      <option>Loading...</option>
-    </select>
+  <div class="video-player">
+      @if($type=='Local')
+      <video id="videoPlayer" class="video-js vjs-default-skin" controls width="560"
+          height="315"
+          autoplay="{{ auth()->check() ? 'true' : 'false' }}"
+          poster="{{$thumbnail_image}}"
+          data-setup='{"autoplay": {{ auth()->check() ? 'true' : 'false' }}, "muted": true}'>
+          <source src="{{ $data }}" type="video/mp4" id="videoSource">
+          @if(isset($captions) && $captions)
+          <track kind="captions" src="{{ $captions }}" srclang="en" label="English">
+          @endif
+      </video>
+      @else
+      <!-- Video.js Player -->
+      <video
+          id="videoPlayer"
+          class="video-js vjs-default-skin"
+          controls
+          width="560"
+          height="315"
+          autoplay="{{ auth()->check() ? 'true' : 'false' }}"
+          {{-- muted --}}
+          data-watch-time="{{$watched_time??0}}"
+          data-movie-access="{{$dataAccess??''}}"
+          data-encrypted="{{ $data }}"
+          poster="{{$thumbnail_image}}"
+          data-setup='{"autoplay": {{ auth()->check() ? 'true' : 'false' }}, "muted": true}'>
+      </video>
+      @endif
   </div>
 </div>
 
-<!-- Scripts -->
-<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+<!-- Include the required libraries -->
+<script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-hls/5.15.0/videojs-contrib-hls.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-quality-levels@3.0.0/dist/videojs-contrib-quality-levels.min.js"></script>
 
+<!-- Add resolution and caption buttons with quality levels plugin -->
 <script>
-  const player = videojs('my-video');
-  const qualitySelect = document.getElementById('qualitySelect');
-  const audioSelect = document.getElementById('audioSelect');
-
-  player.ready(function () {
-    const qualityLevels = player.qualityLevels();
-
-    // Wait for levels to load
-    qualityLevels.on('addqualitylevel', function () {
-      // Clear previous options
-      qualitySelect.innerHTML = '';
-
-      // Auto option
-      const autoOption = document.createElement('option');
-      autoOption.value = 'auto';
-      autoOption.textContent = 'Auto';
-      qualitySelect.appendChild(autoOption);
-
-      // Unique resolutions (prevent duplicates)
-      const added = new Set();
-
-      for (let i = 0; i < qualityLevels.length; i++) {
-        const level = qualityLevels[i];
-        const label = `${level.height}p`;
-
-        if (!added.has(label)) {
-          const option = document.createElement('option');
-          option.value = i;
-          option.textContent = label;
-          qualitySelect.appendChild(option);
-          added.add(label);
-        }
-      }
+    console.log("hello");
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Wait for video.js to initialize
+      setTimeout(function() {
+          var player = videojs('videoPlayer');
+          if (!player) {
+              console.error('Player not found');
+              return;
+          }
+          
+          console.log('Player initialized');
+          
+          console.log("in hu");
+          // Initialize quality levels plugin
+          var qualityLevels = player.qualityLevels();
+          console.log('Quality levels plugin initialized');
+          
+          // Add custom CSS
+          var style = document.createElement('style');
+          style.textContent = `
+              .vjs-resolution-button {
+                  font-family: 'VideoJS';
+                  cursor: pointer;
+                  position: relative;
+              }
+              .vjs-resolution-button .vjs-menu {
+                  display: none;
+                  position: absolute;
+                  bottom: 40px;
+                  left: 0;
+                  background-color: rgba(43, 51, 63, 0.7);
+                  border-radius: 2px;
+                  padding: 5px 0;
+                  z-index: 100;
+                  width: 120px;
+              }
+              .vjs-resolution-button:hover .vjs-menu,
+              .vjs-resolution-button .vjs-menu.vjs-menu-active {
+                  display: block;
+              }
+              .vjs-resolution-button .vjs-menu-content {
+                  max-height: 200px;
+                  overflow-y: auto;
+              }
+              .vjs-resolution-button .vjs-menu-item {
+                  text-align: center;
+                  padding: 6px 12px;
+                  margin: 0;
+                  font-size: 14px;
+                  color: #fff;
+                  cursor: pointer;
+              }
+              .vjs-resolution-button .vjs-menu-item:hover {
+                  background-color: rgba(255, 255, 255, 0.2);
+              }
+              .vjs-resolution-button .vjs-menu-item.vjs-selected {
+                  background-color: rgba(115, 133, 159, 0.5);
+              }
+              .vjs-caption-button.vjs-caption-active {
+                  color: #2B93D1;
+              }
+          `;
+          document.head.appendChild(style);
+          
+          // Create resolution button
+          var resolutionButton = document.createElement('button');
+          resolutionButton.className = 'vjs-control vjs-button vjs-resolution-button';
+          resolutionButton.type = 'button';
+          resolutionButton.title = 'Quality';
+          resolutionButton.innerHTML = '<span class="vjs-icon-placeholder">Auto</span>';
+          
+          // Create resolution menu
+          var resolutionMenu = document.createElement('div');
+          resolutionMenu.className = 'vjs-menu';
+          
+          var resolutionMenuContent = document.createElement('div');
+          resolutionMenuContent.className = 'vjs-menu-content';
+          resolutionMenu.appendChild(resolutionMenuContent);
+          
+          // Add menu to button
+          resolutionButton.appendChild(resolutionMenu);
+          
+          // Toggle menu on button click
+          resolutionButton.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Resolution button clicked');
+              resolutionMenu.classList.toggle('vjs-menu-active');
+          });
+          
+          // Close menu when clicking elsewhere
+          document.addEventListener('click', function(e) {
+              if (!resolutionButton.contains(e.target)) {
+                  resolutionMenu.classList.remove('vjs-menu-active');
+              }
+          });
+          
+          // Create caption button
+          var captionButton = document.createElement('button');
+          captionButton.className = 'vjs-control vjs-button vjs-caption-button';
+          captionButton.type = 'button';
+          captionButton.title = 'Captions';
+          captionButton.innerHTML = '<span class="vjs-icon-placeholder vjs-icon-subtitles"></span>';
+          
+          var captionsEnabled = false;
+          captionButton.addEventListener('click', function() {
+              captionsEnabled = !captionsEnabled;
+              
+              // Toggle captions
+              var tracks = player.textTracks();
+              for (var i = 0; i < tracks.length; i++) {
+                  var track = tracks[i];
+                  if (track.kind === 'subtitles' || track.kind === 'captions') {
+                      track.mode = captionsEnabled ? 'showing' : 'hidden';
+                  }
+              }
+              
+              // Update button appearance
+              if (captionsEnabled) {
+                  captionButton.classList.add('vjs-caption-active');
+              } else {
+                  captionButton.classList.remove('vjs-caption-active');
+              }
+          });
+          
+          // Add buttons to control bar
+          var fullscreenButton = player.controlBar.getChild('fullscreenToggle').el();
+          if (fullscreenButton) {
+              player.controlBar.el().insertBefore(captionButton, fullscreenButton);
+              player.controlBar.el().insertBefore(resolutionButton, fullscreenButton);
+              console.log('Buttons added to control bar');
+          } else {
+              console.error('Fullscreen button not found');
+              player.controlBar.el().appendChild(captionButton);
+              player.controlBar.el().appendChild(resolutionButton);
+              console.log('Buttons added to end of control bar');
+          }
+          
+          // Check for captions
+          player.on('loadedmetadata', function() {
+              var currentSource = player.currentSource();
+              if (currentSource && currentSource.src) {
+                  var baseUrl = currentSource.src.substring(0, currentSource.src.lastIndexOf('/') + 1);
+                  
+                  // Check if captions exist and add them
+                  fetch(baseUrl + 'captions.vtt')
+                      .then(function(response) {
+                          if (response.ok) {
+                              player.addRemoteTextTrack({
+                                  kind: 'captions',
+                                  label: 'English',
+                                  language: 'en',
+                                  src: baseUrl + 'captions.vtt'
+                              }, false);
+                          }
+                      })
+                      .catch(function() {
+                          console.log('No captions found');
+                      });
+              }
+          });
+          
+          // Wait for quality levels to load
+          qualityLevels.on('addqualitylevel', function() {
+              console.log('Quality level added, updating menu');
+              updateQualityMenu();
+          });
+          
+          // Function to update quality menu
+          function updateQualityMenu() {
+              // Clear previous options
+              resolutionMenuContent.innerHTML = '';
+              
+              // Add Auto option
+              var autoItem = document.createElement('div');
+              autoItem.className = 'vjs-menu-item vjs-selected';
+              autoItem.textContent = 'Auto';
+              autoItem.setAttribute('data-quality', 'auto');
+              
+              autoItem.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  // Enable all quality levels (auto mode)
+                  for (var i = 0; i < qualityLevels.length; i++) {
+                      qualityLevels[i].enabled = true;
+                  }
+                  
+                  // Update selected state
+                  updateSelectedQuality('auto');
+                  
+                  // Update button text
+                  updateResolutionButtonText('Auto');
+                  
+                  // Close menu after selection
+                  resolutionMenu.classList.remove('vjs-menu-active');
+                  
+                  console.log('Selected Auto quality');
+              });
+              
+              resolutionMenuContent.appendChild(autoItem);
+              
+              // Track added resolutions to avoid duplicates
+              var addedResolutions = new Set();
+              
+              // Add quality level options
+              for (var i = 0; i < qualityLevels.length; i++) {
+                  var level = qualityLevels[i];
+                  var height = level.height;
+                  var resolution = height + 'p';
+                  
+                  // Skip duplicates
+                  if (addedResolutions.has(resolution)) continue;
+                  addedResolutions.add(resolution);
+                  
+                  var item = document.createElement('div');
+                  item.className = 'vjs-menu-item';
+                  item.textContent = resolution;
+                  item.setAttribute('data-quality', i);
+                  
+                  (function(index, res) {
+                      item.addEventListener('click', function(e) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          
+                          // Enable only this quality level
+                          for (var j = 0; j < qualityLevels.length; j++) {
+                              var level = qualityLevels[j];
+                              // Enable this resolution and any with the same height
+                              level.enabled = (level.height === qualityLevels[index].height);
+                          }
+                          
+                          // Update selected state
+                          updateSelectedQuality(index.toString());
+                          
+                          // Update button text
+                          updateResolutionButtonText(res);
+                          
+                          // Close menu after selection
+                          resolutionMenu.classList.remove('vjs-menu-active');
+                          
+                          console.log('Selected resolution:', res);
+                      });
+                  })(i, resolution);
+                  
+                  resolutionMenuContent.appendChild(item);
+              }
+              
+              // If no quality levels were found, add a message
+              if (qualityLevels.length === 0) {
+                  var noLevelsItem = document.createElement('div');
+                  noLevelsItem.className = 'vjs-menu-item';
+                  noLevelsItem.textContent = 'No quality levels found';
+                  resolutionMenuContent.appendChild(noLevelsItem);
+                  console.log('No quality levels found');
+              } else {
+                  console.log('Found', qualityLevels.length, 'quality levels');
+              }
+          }
+          console.log("hu chuj");
+          
+          // Function to update selected quality in menu
+          function updateSelectedQuality(quality) {
+              var items = resolutionMenuContent.querySelectorAll('.vjs-menu-item');
+              items.forEach(function(item) {
+                  if (item.getAttribute('data-quality') === quality) {
+                      item.classList.add('vjs-selected');
+                  } else {
+                      item.classList.remove('vjs-selected');
+                  }
+              });
+          }
+          
+          // Function to update resolution button text
+          function updateResolutionButtonText(text) {
+              var placeholder = resolutionButton.querySelector('.vjs-icon-placeholder');
+              if (placeholder) {
+                  placeholder.textContent = text;
+              }
+          }
+          
+          // Add audio track selector
+          player.on('loadedmetadata', function() {
+              var audioTracks = player.audioTracks();
+              
+              if (audioTracks && audioTracks.length > 1) {
+                  console.log('Multiple audio tracks found:', audioTracks.length);
+                  
+                  // Create audio button
+                  var audioButton = document.createElement('button');
+                  audioButton.className = 'vjs-control vjs-button vjs-audio-button';
+                  audioButton.type = 'button';
+                  audioButton.title = 'Audio';
+                  audioButton.innerHTML = '<span class="vjs-icon-placeholder">🔊</span>';
+                  
+                  // Create audio menu
+                  var audioMenu = document.createElement('div');
+                  audioMenu.className = 'vjs-menu';
+                  
+                  var audioMenuContent = document.createElement('div');
+                  audioMenuContent.className = 'vjs-menu-content';
+                  audioMenu.appendChild(audioMenuContent);
+                  
+                  // Toggle menu on button click
+                  audioButton.addEventListener('click', function(e) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      audioMenu.classList.toggle('vjs-menu-active');
+                  });
+                  
+                  // Close menu when clicking elsewhere
+                  document.addEventListener('click', function(e) {
+                      if (!audioButton.contains(e.target)) {
+                          audioMenu.classList.remove('vjs-menu-active');
+                      }
+                  });
+                  
+                  audioButton.appendChild(audioMenu);
+                  
+                  // Add audio tracks to menu
+                  for (var i = 0; i < audioTracks.length; i++) {
+                      var track = audioTracks[i];
+                      var item = document.createElement('div');
+                      item.className = 'vjs-menu-item';
+                      if (track.enabled) {
+                          item.className += ' vjs-selected';
+                      }
+                      item.textContent = track.label || 'Track ' + (i + 1);
+                      
+                      (function(index) {
+                          item.addEventListener('click', function(e) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              
+                              // Enable this audio track and disable others
+                              for (var j = 0; j < audioTracks.length; j++) {
+                                  audioTracks[j].enabled = (j === index);
+                              }
+                              
+                              // Update selected state
+                              var items = audioMenuContent.querySelectorAll('.vjs-menu-item');
+                              items.forEach(function(menuItem, idx) {
+                                  if (idx === index) {
+                                      menuItem.classList.add('vjs-selected');
+                                  } else {
+                                      menuItem.classList.remove('vjs-selected');
+                                  }
+                              });
+                              
+                              // Close menu after selection
+                              audioMenu.classList.remove('vjs-menu-active');
+                          });
+                      })(i);
+                      
+                      audioMenuContent.appendChild(item);
+                  }
+                  
+                  // Add audio button to control bar
+                  player.controlBar.el().insertBefore(audioButton, fullscreenButton || null);
+              }
+          });
+          
+          // Initialize quality menu
+          updateQualityMenu();
+      }, 500); // Give video.js time to initialize
     });
-
-    qualitySelect.addEventListener('change', function () {
-      const selected = qualitySelect.value;
-      for (let i = 0; i < qualityLevels.length; i++) {
-        qualityLevels[i].enabled = (selected === 'auto') || (parseInt(selected) === i);
-      }
-    });
-
-    // Audio track selector
-    const updateAudioDropdown = () => {
-      const audioTracks = player.audioTracks();
-      audioSelect.innerHTML = '';
-
-      for (let i = 0; i < audioTracks.length; i++) {
-        const track = audioTracks[i];
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = track.label || `Track ${i + 1}`;
-        if (track.enabled) option.selected = true;
-        audioSelect.appendChild(option);
-      }
-
-      audioSelect.addEventListener('change', function () {
-        const index = parseInt(this.value);
-        for (let i = 0; i < audioTracks.length; i++) {
-          audioTracks[i].enabled = (i === index);
-        }
-      });
-    };
-
-    player.on('loadedmetadata', updateAudioDropdown);
-  });
-</script>
-
-
-
-
-
-            {{-- <video
-            
-                id="videoPlayer"
-                class="video-js vjs-default-skin"
-                controls
-                width="560"
-                height="315"
-                autoplay="{{ auth()->check() ? 'true' : 'false' }}"
-                muted
-                data-watch-time="{{$watched_time??0}}"
-                data-movie-access="{{$dataAccess??''}}"
-                data-encrypted="{{ $data }}"
-                poster="{{$thumbnail_image}}"
-                data-setup='{"autoplay": {{ auth()->check() ? 'true' : 'false' }}, "muted": true}'>
-
-            </video> --}}
-
-            <meta name="baseUrl" content="{{ url('/') }}">
-            <meta name="csrf-token" content="{{ csrf_token() }}">
-
-            @endif
-
-        </div>
-</div>
-
-
-
-
+    </script>
 
 <!-- Include the custom JS -->
 <script src="{{ asset('js/videoplayer.min.js') }}"></script>
 <script>
-    var isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
-    var loginUrl = "{{ route('login') }}";  // Update with your actual login route
+  var isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+  var loginUrl = "{{ route('login') }}";  // Update with your actual login route
 </script>
